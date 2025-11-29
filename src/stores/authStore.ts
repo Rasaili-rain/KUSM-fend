@@ -1,15 +1,8 @@
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-  picture?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { api } from "./utils/api";
+import type { User } from "./utils/types";
 
 interface AuthState {
   user: User | null;
@@ -22,8 +15,6 @@ interface AuthState {
   fetchUser: () => Promise<void>;
   initializeAuth: () => Promise<void>;
 }
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -60,17 +51,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const response = await fetch(`${API_URL}/users/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          if (!response.ok) {
-            throw new Error("Failed to fetch user");
-          }
-
-          const user = await response.json();
+          const user = await api.getCurrentUser();
           set({
             user,
             isAuthenticated: true,

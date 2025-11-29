@@ -1,4 +1,5 @@
 import { axiosInstance } from "./api_provider";
+import type { User } from "./types";
 
 // API methods
 export const api = {
@@ -10,7 +11,13 @@ export const api = {
   async healthCheck():Promise<boolean>{
     const response = await axiosInstance.get("/");
     return response.status === 200;
-  }
+  },
+
+  async getCurrentUser(): Promise<User> {
+    //axios interceptor handels the authorization tokens
+    const response = await axiosInstance.get("/users/me");
+    return response.data;
+  },
 };
 
 export default axiosInstance;
