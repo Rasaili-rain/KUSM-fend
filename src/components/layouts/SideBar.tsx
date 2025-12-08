@@ -1,9 +1,9 @@
-import Block from "../assets/block.svg";
+import Block from "@assets/react.svg";
 
 export default function Sidebar() {
   const blocks = ["Block-1", "Block-2", "Block-3"];
   return (
-    <div className="w-64 h-screen text-black flex flex-col p-4 gap-3 border-r-2 border-black/50">
+    <div className="w-64 h-screen text-black flex flex-col p-4 gap-3 border-r-2 border-gray-300">
       <div className="text-2xl font-bold p-2">KU Smart Meter</div>
       <div>
         <div className="w-full text-left px-3 py-2 rounded-lg transition">Dashboard</div>

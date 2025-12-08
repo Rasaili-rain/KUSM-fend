@@ -1,10 +1,39 @@
 import { useState, useEffect } from "react";
-import { useAuthStore } from "./stores/authStore";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import { api } from "./utils/api";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
-function App() {
+import { useAuthStore } from "@stores/authStore";
+import { api } from "@utils/api";
+import Login from "@pages/Login";
+import Dashboard from "@pages/Dashboard-bak";
+import MasterLayout from "@components/layouts/MasterLayout";
+
+
+/*
+ * Application Routes
+ */
+
+const router = createBrowserRouter([
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    element: <MasterLayout />,
+    handle: { title: "Dashboard" },
+    children: [
+      { path: "/", element: <Dashboard /> }
+    ],
+  },
+]);
+
+
+export default function App() {
   const { isAuthenticated, isLoading, initializeAuth } = useAuthStore();
   const [apiHealthy, setApiHealthy] = useState<boolean | null>(null);
 
@@ -29,8 +58,6 @@ function App() {
 
   return (
     <>
-      {isAuthenticated ? <Dashboard /> : <Login />}
-      {/* API health indicator */}
       <div
         className="fixed top-2 right-2 w-3 h-3 rounded-full border border-gray-300"
         style={{
@@ -38,8 +65,7 @@ function App() {
         }}
         title={apiHealthy === null ? "Checking API..." : apiHealthy ? "API is healthy" : "API offline"}
       />
+      <RouterProvider router={router} />
     </>
   );
 }
-
-export default App;
