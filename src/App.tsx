@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
 
 import { useAuthStore } from "@stores/authStore";
-import { api } from "@utils/api";
 import Login from "@pages/Login";
 import Dashboard from "@pages/Dashboard";
 import MasterLayout from "@components/layouts/MasterLayout";
 import Analysis from "@pages/Analysis";
 import MeterDetail from "@pages/MeterDetail";
 import Map from "@pages/Map";
+import { useMeterStore } from "./stores/meterStore";
 
 
 /*
@@ -53,15 +53,22 @@ const router = createBrowserRouter([
 
 export default function App() {
   const { isAuthenticated, isLoading, initializeAuth } = useAuthStore();
-  const [apiHealthy, setApiHealthy] = useState<boolean | null>(null);
+
+  const { fetchMeters } = useMeterStore();
 
   useEffect(() => {
-    initializeAuth();
-    api
-      .healthCheck()
-      .then(setApiHealthy)
-      .catch(() => setApiHealthy(false));
-  }, [initializeAuth]);
+    const init = async () => {
+      await initializeAuth();
+
+      // Fetch meters only if logged in
+      // if (useAuthStore.getState().isAuthenticated) {
+        fetchMeters();
+      // }
+    };
+
+    init();
+  }, [initializeAuth, fetchMeters]);
+
 
   if (isLoading) {
     return (
@@ -76,13 +83,6 @@ export default function App() {
 
   return (
     <>
-      <div
-        className="fixed top-2 right-2 w-3 h-3 rounded-full border border-gray-300"
-        style={{
-          backgroundColor: apiHealthy === null ? "gray" : apiHealthy ? "green" : "red",
-        }}
-        title={apiHealthy === null ? "Checking API..." : apiHealthy ? "API is healthy" : "API offline"}
-      />
       <RouterProvider router={router} />
     </>
   );

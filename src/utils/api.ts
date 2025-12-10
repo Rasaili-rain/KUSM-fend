@@ -1,5 +1,5 @@
 import { axiosInstance } from "./api_provider";
-import type { User } from "./types";
+import type { GetAllMeterResponse, GetLatestMeterDataResponse, User } from "./types";
 
 // API methods
 export const api = {
@@ -8,7 +8,7 @@ export const api = {
     return response.data.url;
   },
 
-  async healthCheck():Promise<boolean>{
+  async healthCheck(): Promise<boolean> {
     const response = await axiosInstance.get("/");
     return response.status === 200;
   },
@@ -18,6 +18,17 @@ export const api = {
     const response = await axiosInstance.get("/users/me");
     return response.data;
   },
+
+  async getAllMeter(): Promise<GetAllMeterResponse> {
+    const response = await axiosInstance.get("/meter");
+    return response.data;
+  },
+
+  async getMeterData(id: number): Promise<GetLatestMeterDataResponse> {
+    const response = await axiosInstance.get(`/meter/${id}/latest`);
+    return response.data;
+  },
+  
 };
 
 export default axiosInstance;
