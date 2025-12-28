@@ -9,17 +9,17 @@ export interface User {
   created_at: string;
   updated_at: string;
 }
+
 export interface Meter {
   meter_id: number;
   name: string;
   sn: string;
 }
 
-
-export interface MeterData  {
+export interface MeterData {
   data_id: number;
   meter_id: number;
-  timestamp: string; 
+  timestamp: string;
 
   phase_A_current: number;
   phase_A_voltage: number;

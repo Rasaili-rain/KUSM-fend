@@ -74,6 +74,7 @@ export default function SideBar() {
                     ? "bg-blue-50 text-blue-600 font-medium"
                     : "hover:bg-gray-100"
                 }`}
+                state={{ title: meter.name }}
               >
                 <Gauge className="w-4 h-4" />
                 <span className="truncate">{meter.name}</span>
