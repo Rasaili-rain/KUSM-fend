@@ -56,3 +56,12 @@ export interface GetAllMeterResponse  {
 };
 
 export type GetLatestMeterDataResponse = MeterData;
+
+
+// ---------------common types ------------------
+
+export type TimePoint = {
+  x: Date;
+  y: number;
+};
+

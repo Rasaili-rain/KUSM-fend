@@ -28,7 +28,18 @@ export const api = {
     const response = await axiosInstance.get(`/meter/${id}/latest`);
     return response.data;
   },
-  
+
+  async getMeterDataByDate(name: string, fromDate: string, toDate: string) {
+    const response = await axiosInstance.get(`/meter/databydate`, {
+      params: {
+        meter_name: name,
+        from_date: fromDate,
+        to_date: toDate,
+      },
+    });
+
+    return response.data;
+  },
 };
 
 export default axiosInstance;

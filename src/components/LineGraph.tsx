@@ -1,48 +1,79 @@
 import { LineChart } from '@mui/x-charts/LineChart';
+import type { TimePoint } from "@utils/types";
 
-export type LineGraphProps = {
-  title: string;
-  data: number[];
+export type LineGraphPoint = {
+  label: string;
+  data: TimePoint[];
   color: string;
 };
 
-export function LineGraph({ title, data, color }: LineGraphProps) {
-  const xAxisLabels = Array.from({ length: 288 }, (_, i) => {
-    const hour = Math.floor(i / 12);
-    const minute = (i % 12) * 5;
-    return `${hour.toString().padStart(2, "0")}:${minute
-      .toString()
-      .padStart(2, "0")}`;
-  });
+export type LineGraphProps = {
+  title: string;
+  points?: LineGraphPoint[];
+};
+
+export function LineGraph({ title, points }: LineGraphProps) {
+  // Loading animation
+  if (!points) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-[#F9F9FA] rounded-[20px]">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+        <span className="text-sm text-gray-500">Fetching {title}...</span>
+      </div>
+    );
+  }
+
+  const safePoints = Array.isArray(points)
+    ? points.filter(p => Array.isArray(p.data) && p.data.length > 0)
+    : [];
+
+  if (safePoints.length === 0) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">
+        No data available
+      </div>
+    );
+  }
+
+  const allValues = safePoints.flatMap(p => p.data.map(d => d.y));
+  const minY = Math.min(...allValues);
+  const maxY = Math.max(...allValues);
+  const padding = (maxY - minY) * 0.1 || 1;
+
+  // Extract x-axis data (timestamps) from the first series
+  const xAxisData = safePoints[0]?.data.map(point => point.x) || [];
+
+  // Convert series data to just y-values
+  const series = safePoints.map((point) => ({
+    data: point.data.map(d => d.y),
+    label: point.label,
+    showMark: false,
+    area: true,
+    color: point.color,
+  }));
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F9F9FA] rounded-[20px]">
-      <div className="px-6 py-4 flex-none">
-        {title}
-      </div>
+      <div className="px-6 py-4 flex-none">{title}</div>
       <LineChart
-        series={[
+        series={series}
+        xAxis={[
           {
-            data: data,
-            yAxisId: 'leftAxisId',
-            area: true,
-            showMark: false,
-            color: color,
-            valueFormatter: (value) => `${value}`,
-            label: title,
+            scaleType: 'time',
+            data: xAxisData,
+            valueFormatter: (d: Date) =>
+              d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]}
-        xAxis={[{
-          scaleType: 'point', data: xAxisLabels,
-          tickInterval: (value, index) => index % (12 * 4) === 0,    // Show the interval of 4 hr
-          valueFormatter: (value) => `${value}`
-        }]}
         yAxis={[
-          { id: 'leftAxisId', width: 50 },
-          { id: 'rightAxisId', position: 'right' },
+          {
+            min: minY - padding,
+            max: maxY + padding,
+            width: 50,
+          },
         ]}
         tooltip={{ trigger: 'axis' }}
-        hideLegend={true}
+        hideLegend
         sx={{
           '& .MuiAreaElement-root': {
             fillOpacity: 0.2,
@@ -52,4 +83,3 @@ export function LineGraph({ title, data, color }: LineGraphProps) {
     </div>
   );
 }
-
