@@ -24,7 +24,7 @@ export const api = {
     return response.data;
   },
 
-  async getMeterData(id: number): Promise<GetLatestMeterDataResponse> {
+  async getMeterData(id: number){
     const response = await axiosInstance.get(`/meter/${id}/latest`);
     return response.data;
   },
