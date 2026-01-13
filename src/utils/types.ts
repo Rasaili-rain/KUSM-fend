@@ -18,6 +18,8 @@ export interface Meter {
   y?: number | null;  // Map Y coordinate (percentage)
 }
 
+// @deprecated : we do not use this type of data in the db
+// below is the what we do use
 export interface MeterData {
   data_id: number;
   meter_id: number;
@@ -44,6 +46,51 @@ export interface MeterData {
   phase_C_grid_consumption: number;
   phase_C_exported_power: number;
 };
+
+// we use this kinda data for some reason ; probly export garda power ko matra aayera hola
+//---------------------
+export interface CurrentData {
+  id: number;
+  meter_id: number;
+  timestamp: string;
+  phase_A_current: number;
+  phase_B_current: number;
+  phase_C_current: number;
+}
+
+export interface VoltageData {
+  id: number;
+  meter_id: number;
+  timestamp: string;
+  phase_A_voltage: number;
+  phase_B_voltage: number;
+  phase_C_voltage: number;
+}
+
+export interface PowerData {
+  id: number;
+  meter_id: number;
+  timestamp: string;
+  phase_A_active_power: number;
+  phase_A_power_factor: number;
+  phase_B_active_power: number;
+  phase_B_power_factor: number;
+  phase_C_active_power: number;
+  phase_C_power_factor: number;
+}
+
+export interface EnergyData {
+  id: number;
+  meter_id: number;
+  timestamp: string;
+  phase_A_grid_consumption: number;
+  phase_A_exported_power: number;
+  phase_B_grid_consumption: number;
+  phase_B_exported_power: number;
+  phase_C_grid_consumption: number;
+  phase_C_exported_power: number;
+}
+// --------------------
 
 
 

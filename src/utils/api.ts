@@ -1,5 +1,5 @@
 import { axiosInstance } from "./api_provider";
-import type { GetAllMeterResponse, GetLatestMeterDataResponse, User } from "./types";
+import type { GetAllMeterResponse,  User } from "./types";
 
 // API methods
 export const api = {
@@ -24,7 +24,7 @@ export const api = {
     return response.data;
   },
 
-  async getMeterData(id: number){
+  async getMeterData(id: number) {
     const response = await axiosInstance.get(`/meter/${id}/latest`);
     return response.data;
   },
@@ -50,10 +50,10 @@ export const api = {
     return response.data;
   },
 
-  async getBillingData(year:number, month: number) {
+  async getBillingData(year: number, month: number) {
     const response = await axiosInstance.get(`/billing/${year}/${month}`);
     return response.data;
-  }
-};
+  },
+}
 
 export default axiosInstance;
