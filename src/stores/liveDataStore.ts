@@ -1,42 +1,22 @@
-import { axiosInstance } from "@/utils/api_provider";
-import type { CurrentData, VoltageData, PowerData, EnergyData } from "@/utils/types";
+import { api } from "@/utils/api";
+import type { MeterData } from "@/utils/types";
 import { create } from "zustand";
-
-interface LiveDataResponse {
-  current: CurrentData[];
-  voltage: VoltageData[];
-  power: PowerData[];
-  energy: EnergyData[];
-  timestamp: string;
-}
+import { useMeterStore } from "./meterStore";
 
 interface LiveDataState {
-  currentData: Record<number, CurrentData>;
-  voltageData: Record<number, VoltageData>;
-  powerData: Record<number, PowerData>;
-  energyData: Record<number, EnergyData>;
+  meterDataMap: { [meterId: number]: MeterData };
   outages: number[];
   isLoading: boolean;
   error: string | null;
   lastUpdate: string | null;
 
   fetchLiveData: () => Promise<void>;
+  fetchSingleMeterData: (meterId: number) => Promise<void>;
   clearLiveData: () => void;
 }
 
-// Helper function to convert array to keyed object
-function keyByMeterId<T extends { meter_id: number }>(items: T[]): Record<number, T> {
-  return items.reduce((acc, item) => {
-    acc[item.meter_id] = item;
-    return acc;
-  }, {} as Record<number, T>);
-}
-
-export const useLiveDataStore = create<LiveDataState>((set) => ({
-  currentData: {},
-  voltageData: {},
-  powerData: {},
-  energyData: {},
+export const useLiveDataStore = create<LiveDataState>((set, get) => ({
+  meterDataMap: {},
   outages: [],
   isLoading: false,
   error: null,
@@ -46,26 +26,44 @@ export const useLiveDataStore = create<LiveDataState>((set) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // Single aggregated request
-      const response = await axiosInstance.get<LiveDataResponse>("/live-data");
-      const { current, voltage, power, energy, timestamp } = response.data;
+      const meterIds = useMeterStore.getState().meters.map(meter => meter.meter_id);
+      if (meterIds.length === 0) {
+        console.warn("No meters found in meter store");
+        set({ isLoading: false });
+        return;
+      }
 
-      // Transform arrays to meter_id keyed objects
-      const currentByMeter = keyByMeterId(current);
-      const voltageByMeter = keyByMeterId(voltage);
-      const powerByMeter = keyByMeterId(power);
-      const energyByMeter = keyByMeterId(energy);
+      // Fetch data for all meters in parallel
+      const promises = meterIds.map(id => api.meter.getLatestMeterData(id));
+      const results = await Promise.allSettled(promises);
 
-      // Detect outages (no current on any phase)
-      const outageList: number[] = Object.entries(currentByMeter)
-        .filter(([_, data]) => data.phase_A_current === 0 && data.phase_B_current === 0 && data.phase_C_current === 0)
-        .map(([meterId]) => parseInt(meterId));
+      const meterDataByMeterId: Record<number, MeterData> = {};
+      const outageList: number[] = [];
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          const data = result.value;
+          const meterId = meterIds[index];
+
+          meterDataByMeterId[meterId] = data;
+
+          // Detect outage (no current on any phase)
+          if (
+            data.phase_A_current === 0 &&
+            data.phase_B_current === 0 &&
+            data.phase_C_current === 0
+          ) {
+            outageList.push(meterId);
+          }
+        } else {
+          console.error(`Failed to fetch data for meter ${meterIds[index]}:`, result.reason);
+        }
+      });
+
+      const timestamp = new Date().toISOString();
 
       set({
-        currentData: currentByMeter,
-        voltageData: voltageByMeter,
-        powerData: powerByMeter,
-        energyData: energyByMeter,
+        meterDataMap: meterDataByMeterId,
         outages: outageList,
         lastUpdate: timestamp,
         isLoading: false,
@@ -79,12 +77,39 @@ export const useLiveDataStore = create<LiveDataState>((set) => ({
     }
   },
 
+  fetchSingleMeterData: async (meterId: number) => {
+    try {
+      const data = await api.meter.getLatestMeterData(meterId);
+      const currentState = get();
+      // Update meter data
+      const meterDataByMeterId = {
+        ...currentState.meterDataMap,
+        [meterId]: data,
+      };
+      // Update outages list
+      const isOutage =
+        data.phase_A_current === 0 &&
+        data.phase_B_current === 0 &&
+        data.phase_C_current === 0;
+
+      const outages = isOutage
+        ? [...new Set([...currentState.outages, meterId])]
+        : currentState.outages.filter((id) => id !== meterId);
+
+      set({
+        meterDataMap: meterDataByMeterId,
+        outages,
+        lastUpdate: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error(`Failed to fetch data for meter ${meterId}:`, err);
+      throw err;
+    }
+  },
+
   clearLiveData: () => {
     set({
-      currentData: {},
-      voltageData: {},
-      powerData: {},
-      energyData: {},
+      meterDataMap: {},
       outages: [],
       lastUpdate: null,
     });

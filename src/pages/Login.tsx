@@ -7,7 +7,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
-      const authUrl = await api.getGoogleAuthUrl();
+      const authUrl = await api.auth.getGoogleAuthUrl();
       window.location.href = authUrl;
     } catch (error) {
       console.error('Login error:', error);

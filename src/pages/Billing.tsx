@@ -29,7 +29,7 @@ export default function Billing() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await api.getBillingData(year, month);
+        const res = await api.billing.getBillingData(year, month);
         setBillData(res);
       } catch (err) {
         console.error(err);

@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 
 import { useMeterStore } from "@stores/meterStore";
-import type { GetLatestMeterDataResponse, TimePoint } from "@utils/types";
+import type { GetLatestMeterDataResponse, MeterData, TimePoint } from "@utils/types";
 import { api } from "@utils/api";
 import { LineGraph, type LineGraphPoint } from "@components/LineGraph";
 import { OverviewInfoCard } from "@components/OverviewInfoCard";

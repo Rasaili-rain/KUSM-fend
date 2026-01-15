@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const user = await api.getCurrentUser();
+          const user = await api.user.me();
           set({
             user,
             isAuthenticated: true,

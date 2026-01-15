@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, MapPin, Zap, AlertTriangle, Activity, Layers, Thermometer } from "lucide-react";
 import { useMeterStore } from "@/stores/meterStore";
 import { useLiveDataStore } from "@/stores/liveDataStore";
-import type { Meter } from "@/utils/types";
+import type { Meter, MeterData } from "@/utils/types";
 
 const VOLTAGE_LIMITS = {
   normal: { min: 200, max: 220 },
@@ -289,22 +289,20 @@ function MeterDetailSidebar({
   meter,
   onClose,
   isOutage,
-  currentData,
-  voltageData,
+  meterData,
   getPowerLevel,
   getVoltageStatus,
 }: {
   meter: Meter | null;
   onClose: () => void;
   isOutage: (id: number) => boolean;
-  currentData: any;
-  voltageData: any;
+  meterData: MeterData | undefined;
   getPowerLevel: (id: number) => number;
   getVoltageStatus: (id: number) => string;
 }) {
-  if (!meter) {
+  if (!meter || !meterData) {
     return (
-      <div className="w-96 bg-gradient-to-br from-gray-50 to-white shadow-2xl border-l border-gray-200">
+      <div className="w-96 bg-linear-to-br from-gray-50 to-white shadow-2xl border-l border-gray-200">
         <div className="flex flex-col items-center justify-center h-full text-center p-8">
           <div className="bg-gray-100 rounded-full p-6 mb-4">
             <MapPin className="w-12 h-12 text-gray-400" />
@@ -368,78 +366,74 @@ function MeterDetailSidebar({
             </div>
 
             {/* Current Data */}
-            {currentData[meter.meter_id] && (
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-5">
-                <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-800">
-                  <Zap className="w-5 h-5 text-yellow-600" />
-                  Current (A)
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { phase: "A", value: currentData[meter.meter_id].phase_A_current, color: "bg-red-500" },
-                    { phase: "B", value: currentData[meter.meter_id].phase_B_current, color: "bg-yellow-500" },
-                    { phase: "C", value: currentData[meter.meter_id].phase_C_current, color: "bg-blue-500" },
-                  ].map(({ phase, value, color }) => (
-                    <div key={phase} className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-600">Phase {phase}</span>
-                        <span className="font-mono font-bold text-gray-900">{value.toFixed(2)} A</span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${color} transition-all duration-300`}
-                          style={{ width: `${Math.min((value / 100) * 100, 100)}%` }}
-                        />
-                      </div>
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-5">
+              <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-800">
+                <Zap className="w-5 h-5 text-yellow-600" />
+                Current (A)
+              </h3>
+              <div className="space-y-3">
+                {[
+                  { phase: "A", value: meterData.phase_A_current, color: "bg-red-500" },
+                  { phase: "B", value: meterData.phase_B_current, color: "bg-yellow-500" },
+                  { phase: "C", value: meterData.phase_C_current, color: "bg-blue-500" },
+                ].map(({ phase, value, color }) => (
+                  <div key={phase} className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Phase {phase}</span>
+                      <span className="font-mono font-bold text-gray-900">{value.toFixed(2)} A</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Voltage Data */}
-            {voltageData[meter.meter_id] && (
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-5">
-                <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-800">
-                  <Activity className="w-5 h-5 text-green-600" />
-                  Voltage (V)
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { phase: "A", value: voltageData[meter.meter_id].phase_A_voltage, color: "bg-red-500" },
-                    { phase: "B", value: voltageData[meter.meter_id].phase_B_voltage, color: "bg-yellow-500" },
-                    { phase: "C", value: voltageData[meter.meter_id].phase_C_voltage, color: "bg-blue-500" },
-                  ].map(({ phase, value, color }) => (
-                    <div key={phase} className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-600">Phase {phase}</span>
-                        <span className="font-mono font-bold text-gray-900">{value.toFixed(2)} V</span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${color} transition-all duration-300`}
-                          style={{ width: `${((value - 180) / (250 - 180)) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {voltageStatus !== "normal" && (
-                  <div
-                    className={`mt-4 p-3 rounded-lg ${
-                      voltageStatus === "critical"
-                        ? "bg-red-50 border border-red-200 text-red-700"
-                        : "bg-yellow-50 border border-yellow-200 text-yellow-700"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 text-sm font-semibold">
-                      <AlertTriangle className="w-4 h-4" />
-                      Voltage outside normal range
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${color} transition-all duration-300`}
+                        style={{ width: `${Math.min((value / 100) * 100, 100)}%` }}
+                      />
                     </div>
                   </div>
-                )}
+                ))}
               </div>
-            )}
+            </div>
+
+            {/* Voltage Data */}
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-5">
+              <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-800">
+                <Activity className="w-5 h-5 text-green-600" />
+                Voltage (V)
+              </h3>
+              <div className="space-y-3">
+                {[
+                  { phase: "A", value: meterData.phase_A_voltage, color: "bg-red-500" },
+                  { phase: "B", value: meterData.phase_B_voltage, color: "bg-yellow-500" },
+                  { phase: "C", value: meterData.phase_C_voltage, color: "bg-blue-500" },
+                ].map(({ phase, value, color }) => (
+                  <div key={phase} className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Phase {phase}</span>
+                      <span className="font-mono font-bold text-gray-900">{value.toFixed(2)} V</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${color} transition-all duration-300`}
+                        style={{ width: `${((value - 180) / (250 - 180)) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {voltageStatus !== "normal" && (
+                <div
+                  className={`mt-4 p-3 rounded-lg ${
+                    voltageStatus === "critical"
+                      ? "bg-red-50 border border-red-200 text-red-700"
+                      : "bg-yellow-50 border border-yellow-200 text-yellow-700"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <AlertTriangle className="w-4 h-4" />
+                    Voltage outside normal range
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -449,7 +443,7 @@ function MeterDetailSidebar({
 
 export default function Map() {
   const { meters, isLoading, error, fetchMeters } = useMeterStore();
-  const { currentData, voltageData, powerData, outages, fetchLiveData } = useLiveDataStore();
+  const { meterDataMap, outages, fetchLiveData, isLoading: liveDataLoading } = useLiveDataStore();
 
   const [selectedMeter, setSelectedMeter] = useState<Meter | null>(null);
   const [hoveredMeter, setHoveredMeter] = useState<Meter | null>(null);
@@ -462,28 +456,28 @@ export default function Map() {
   const imageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchMeters();
-    fetchLiveData();
+    fetchMeters().then(() => {
+      fetchLiveData();
+    });
   }, [fetchMeters, fetchLiveData]);
 
   const toggleLayer = (layer: "markers" | "voltageAlerts" | "outages") => {
     setActiveLayers((prev) => ({ ...prev, [layer]: !prev[layer] }));
   };
 
-  // Updated to use the new voltage limits structure
   const getVoltageStatusForMeter = (meterId: number): "critical" | "warning" | "normal" => {
-    const voltage = voltageData[meterId];
-    if (!voltage) return "normal";
+    const data = meterDataMap[meterId];
+    if (!data) return "normal";
 
-    const avg = (voltage.phase_A_voltage + voltage.phase_B_voltage + voltage.phase_C_voltage) / 3;
+    const avg = (data.phase_A_voltage + data.phase_B_voltage + data.phase_C_voltage) / 3;
     return getVoltageStatus(avg);
   };
 
   const getPowerLevel = (meterId: number) => {
-    const power = powerData[meterId];
-    if (!power) return 0;
+    const data = meterDataMap[meterId];
+    if (!data) return 0;
     return (
-      ((power.phase_A_active_power || 0) + (power.phase_B_active_power || 0) + (power.phase_C_active_power || 0)) / 1000
+      ((data.phase_A_active_power || 0) + (data.phase_B_active_power || 0) + (data.phase_C_active_power || 0)) / 1000
     );
   };
 
@@ -509,9 +503,9 @@ export default function Map() {
   const avgVoltage =
     meters.length > 0
       ? meters.reduce((sum, m) => {
-          const voltage = voltageData[m.meter_id];
-          if (!voltage) return sum;
-          return sum + (voltage.phase_A_voltage + voltage.phase_B_voltage + voltage.phase_C_voltage) / 3;
+          const data = meterDataMap[m.meter_id];
+          if (!data) return sum;
+          return sum + (data.phase_A_voltage + data.phase_B_voltage + data.phase_C_voltage) / 3;
         }, 0) / meters.length
       : 0;
 
@@ -548,6 +542,8 @@ export default function Map() {
   }
 
   const metersWithLocation = meters.filter((m) => m.x != null && m.y != null);
+  const meterId = selectedMeter?.meter_id;
+  const meterData = meterId ? meterDataMap[meterId] : undefined;
 
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
@@ -614,10 +610,10 @@ export default function Map() {
                   />
                   <button
                     onClick={fetchLiveData}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                    disabled={liveDataLoading}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Refresh
+                    {liveDataLoading ? "Refreshing..." : "Refresh"}
                   </button>
                 </div>
               </div>
@@ -658,12 +654,12 @@ export default function Map() {
       </div>
 
       {/* Sidebar */}
+
       <MeterDetailSidebar
         meter={selectedMeter}
         onClose={() => setSelectedMeter(null)}
         isOutage={isOutageFn}
-        currentData={currentData}
-        voltageData={voltageData}
+        meterData={meterData}
         getPowerLevel={getPowerLevel}
         getVoltageStatus={getVoltageStatusForMeter}
       />

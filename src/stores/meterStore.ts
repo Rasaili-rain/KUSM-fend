@@ -28,7 +28,7 @@ export const useMeterStore = create<MeterState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const res: GetAllMeterResponse = await api.getAllMeter();
+      const res: GetAllMeterResponse = await api.meter.getAllMeter();
       set({
         meters: res.data,
         isLoading: false,
@@ -47,7 +47,7 @@ export const useMeterStore = create<MeterState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      await api.updateMeterLocation(meterId, { x, y });
+      await api.meter.updateMeterLocation(meterId, { x, y });
       
       // Update local state
       const meters = get().meters.map((meter) =>
@@ -70,7 +70,7 @@ export const useMeterStore = create<MeterState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      await api.updateMeterLocations(locations);
+      await api.meter.updateMeterLocations(locations);
       
       // Update local state for all meters
       const meters = get().meters.map((meter) => {
