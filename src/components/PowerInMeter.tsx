@@ -18,7 +18,7 @@ export function PowerInMeter({meters}: PowerInMeterProps) {
       console.log()
       try {
         meters.forEach(async (meter) => {
-          const res = await api.getMeterData(meter.meter_id);
+          const res = await api.meter.getLatestMeterData(meter.meter_id);
           const power =
             res.phase_A_active_power +
             res.phase_B_active_power +
