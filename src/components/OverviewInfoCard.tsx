@@ -22,10 +22,9 @@ export function OverviewInfoCard({
 
   if (data === undefined || data === null) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-3
-        bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-        <span className="text-sm text-gray-500">Fetching {title}</span>
+      <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-gray-100">
+        <div className="w-6 h-6 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+        <span className="text-sm text-gray-400">Fetching {title}</span>
       </div>
     );
   }

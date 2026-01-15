@@ -1,18 +1,23 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import {
+  Receipt,
+  Calculator,
+  CalendarDays,
+} from "lucide-react";
 
 import { useMeterStore } from "@/stores/meterStore";
 import type { BillingResponse } from "@utils/types";
 import { api } from "@utils/api";
+import { COLORS, getCurrentMonth, getColorByID, formatMoney } from "@utils/utils";
 import { OverviewInfoCard } from "@components/OverviewInfoCard";
 import { LineGraph, type LineGraphPoint } from "@components/LineGraph";
 import { PieGraph, type PieGraphPoint } from "@components/PieGraph";
 import { BarGraph, type BarGraphPoint } from "@components/BarGraph";
 
-
 export default function Billing() {
-  const year = 2024;
-  const month = 1;
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+  const [year, month] = selectedMonth.split("-").map(Number);
 
   const meters = useMeterStore((state) => state.meters);
   const meterIdToName = Object.fromEntries(
@@ -28,6 +33,7 @@ export default function Billing() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const res = await api.billing.getBillingData(year, month);
         setBillData(res);
@@ -36,16 +42,16 @@ export default function Billing() {
       } finally {
         setLoading(false);
       }
-    }
-
+    };
+  
     fetchData();
-  }, []); // TODO: add year and month as dependency
+  }, [year, month]);
 
   // Extract daily cost data
   useEffect(() => {
     let points: LineGraphPoint = {
       label: "Daily Cost",
-      color: "#3b82f6", // blue
+      color: "#6D28D9",
       data: billData?.cost_per_day.map((d) => ({
         x: d.day,
         y: d.cost,
@@ -63,12 +69,14 @@ export default function Billing() {
   // Extract per meter cost
   useEffect(() => {
     const data = billData
-      ? billData.cost_per_meter.map((m, index) => ({
+      ? billData.cost_per_meter.map((m) => ({
           id: m.meter_id,
           label: meterIdToName[m.meter_id] ?? `Meter ${m.meter_id}`,
           value: m.cost,
+          color: getColorByID(m.meter_id), // 👈 key line
         }))
       : null;
+
     setCostPerMeterData(data);
   }, [billData]);
 
@@ -96,38 +104,79 @@ export default function Billing() {
     console.log(costPerDayPoints);
   }, [costPerDayPoints]);
 
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-12 h-12">
+            <div className="absolute inset-0 rounded-full border-2 border-gray-200" />
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-purple-600 animate-spin" />
+          </div>
+
+          <div className="text-center">
+            <div className="text-lg font-medium text-gray-900">
+              Calculating bill
+            </div>
+             <div className="text-sm text-gray-500 animate-pulse">
+              Aggregating meter data and costs…
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-rows-2 grid-rows-[30%_70%] gap-15 h-screen">
-      <div>
-        <div className="grid grid-rows-2 grid-rows-[30%_100%] gap-2">
-          <div className="mx-2 mt-2 text-xl">
-            Overview
-          </div>
-          <div className="flex justify-center gap-20">
-            <div>
-              <OverviewInfoCard title="Total Cost" data={billData?.billing.total_cost} prefix="Rs."/>
-            </div>
-            <div>
-              <OverviewInfoCard title="Average Cost" data={billData?.billing.avg_cost_per_day} prefix="Rs."/>
-            </div>
-            <div>
-              <OverviewInfoCard title="Expensive Day" data={billData?.billing.expensive_day_cost} footer={`${year}-${month}-${billData?.billing.expensive_day}`} prefix="Rs."/>
-            </div>
-          </div>
+    <div className="grid grid-rows-[30%_70%] gap-3 h-screen">
+      <div className="grid grid-rows-[0.3fr_1fr] gap-2">
+        <div className="mx-2 mt-2 flex items-center justify-between">
+          Overview
+        
+          <input
+            type="month"
+            value={selectedMonth}
+            max={getCurrentMonth()}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-1.5
+                       text-sm text-gray-700 bg-white"
+            disabled={loading}
+          />
+        </div>
+        <div className="flex justify-center gap-20">
+          <OverviewInfoCard
+            title="Total Cost"
+            data={formatMoney(billData?.billing.total_cost)}
+            icon={<Receipt size={18} />}
+          />
+
+          <OverviewInfoCard
+            title="Average Cost / Day"
+            data={formatMoney(billData?.billing.avg_cost_per_day)}
+            icon={<Calculator size={18} />}
+          />
+
+          <OverviewInfoCard
+            title="Most Expensive Day"
+            data={formatMoney(billData?.billing.expensive_day_cost)}
+            footer={`${year}-${String(month).padStart(2, "0")}-${billData?.billing.expensive_day}`}
+            icon={<CalendarDays size={18} />}
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 grid-rows-[50%_50%] gap-4 h-screen">
+      <div className="grid grid-cols-2 grid-rows-[70%_70%] gap-4 h-screen">
         <div className="col-span-2">
-          <LineGraph title="Cost per Day" points={costPerDayPoints} />
+          <LineGraph title="Cost per Day (Rs)" points={costPerDayPoints} />
         </div>
         <div>
-          <PieGraph title="Cost Distribution by Meter" data={costPerMeterData} />
+          <PieGraph title="Cost Distribution by Meter (Rs)" data={costPerMeterData} />
         </div>
         <div>
-          <BarGraph title="Average Cost by Weekday" data={weekDayData} color="#10b981" />
+          <BarGraph title="Average Cost by Weekday (Rs)" data={weekDayData} colors={COLORS} />
         </div>
       </div>
     </div>
+    
+    
   );
 }
