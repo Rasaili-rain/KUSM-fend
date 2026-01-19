@@ -31,6 +31,22 @@ export const getCurrentMonth = () => {
   return local.toISOString().slice(0, 7); // YYYY-MM
 };
 
+export function getMonthRange(date = new Date()) {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+  const toISO = (d: Date) => d.toISOString().slice(0, 10);
+  return { start: toISO(start), end: toISO(end) };
+}
+
+export function getYearRange(date = new Date()) {
+  const start = new Date(date.getFullYear(), 0, 1);
+  const end = new Date(date.getFullYear(), 11, 31);
+
+  const toISO = (d: Date) => d.toISOString().slice(0, 10);
+  return { start: toISO(start), end: toISO(end) };
+}
+
 export const formatMoney = (
   value?: number | null,
   currency = "Rs."

@@ -56,6 +56,17 @@ export const api = {
       return response.data;
     },
 
+    async getAvgDailyEnergy(fromDate: string, toDate: string) {
+      const response = await axiosInstance.get(`/analysis/avg_daily_energy`, {
+        params: {
+          from_date: fromDate,
+          to_date: toDate,
+        }
+      });
+
+      return response.data;
+    }
+
   },
 
   async getVoltageAnalysis(): Promise<VoltageAnalysisResponse> {
