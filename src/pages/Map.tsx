@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { X, MapPin, Zap, AlertTriangle, Activity, Layers, Thermometer } from "lucide-react";
 import { useMeterStore } from "@/stores/meterStore";
 import type { Meter, MeterData } from "@/utils/types";

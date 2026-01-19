@@ -1,15 +1,13 @@
 
 import { Link } from "react-router-dom";
-import type { Meter } from "@/utils/types";
-import { useLatestDataStore } from "@/stores/latestDataStore";
+import type { Meter, MeterData } from "@/utils/types";
 
 export type PowerInMeterProps = {
-  meters: Meter[]
+  meters: Meter[],
+  meterDataMap: { [meterId: number]: MeterData };
 };
 
-export function PowerInMeter({ meters }: PowerInMeterProps) {
-  const { meterDataMap } = useLatestDataStore();
-
+export function PowerInMeter({ meters , meterDataMap }: PowerInMeterProps) {
   const calculatePower = (meterId: number): number | string => {
     const data = meterDataMap[meterId];
     if (!data) return "—";
