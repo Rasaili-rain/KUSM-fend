@@ -1,5 +1,7 @@
 // -----------------DB types----------------
 
+import { Type } from "lucide-react";
+
 export interface User {
   id: string;
   email: string;
@@ -127,7 +129,7 @@ export interface CurrentAnalysisResponse {
   data: CurrentAnalysisItem[];
 };
 
-export interface GetAllMeterResponse  {
+export interface GetAllMeterResponse {
   success: boolean;
   count: number;
   data: Meter[];
@@ -135,6 +137,13 @@ export interface GetAllMeterResponse  {
 
 export type GetLatestMeterDataResponse = MeterData;
 
+export type GetAverageConsumptionAndPowerItem = {
+  meter_name: string;
+  average_energy: number;
+  average_power: number;
+}
+
+export type GetAverageConsumptionAndPowerResponse  = GetAverageConsumptionAndPowerItem[];
 
 export type Billing = {
   total_cost: number;

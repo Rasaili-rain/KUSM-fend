@@ -1,5 +1,5 @@
 import { axiosInstance } from "./api_provider";
-import type { CurrentAnalysisResponse, GetAllMeterResponse, MeterData, User, VoltageAnalysisResponse } from "./types";
+import type { CurrentAnalysisResponse, GetAllMeterResponse, MeterData, User, VoltageAnalysisResponse, GetAverageConsumptionAndPowerResponse } from "./types";
 
 // API methods
 export const api = {
@@ -74,6 +74,12 @@ export const api = {
       return response.data;
     },
   },
+
+  async getAverageConsmuptionAndPower(): Promise<GetAverageConsumptionAndPowerResponse> {
+    const response = await axiosInstance.get("/analysis/avg_consumption");
+    return response.data
+  }
+  
 };
 
 export default axiosInstance;

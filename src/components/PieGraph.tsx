@@ -68,7 +68,7 @@ export function PieGraph({ title, data, minSliceAngle = 5 }: PieGraphProps) {
   const safeData = data.filter(
     (d) => typeof d.value === "number" && d.value > 0
   );
-  
+  console.log("PieGraph Data:", safeData);
   if (safeData.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center text-sm text-gray-400
@@ -84,11 +84,11 @@ export function PieGraph({ title, data, minSliceAngle = 5 }: PieGraphProps) {
   return (
     <div className="w-full h-full flex flex-col bg-white rounded-2xl border border-gray-100">
       {/* Header */}
-      <div className="px-6 pt-5 pb-2 text-sm font-medium text-gray-900">
+      <div className="px-6 pt-5 pb-2 text-lg font-bold text-gray-900">
         {title}
       </div>
       {/* Chart */}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center p-5">
         <PieChart
           width={420}
           height={360}
