@@ -37,14 +37,14 @@ export default function Analysis() {
   return (
     <div style={{ padding: 16 }}>
 
-      <h1 style={{fontWeight: "bold"}}>Voltage Unbalance</h1>
+      <h1 style={{fontWeight: "bold", padding: 8}}>Voltage Unbalance</h1>
       <div style={gridStyle}>
         {voltageItems.map((item) => (
           <UnbalanceCard key={"V-" + item.meter_name + item.timestamp} mode="voltage" data={item} />
         ))}
       </div>
 
-      <h2 style={{ fontWeight: "bold", marginTop: 24 }}>Current Unbalance</h2>
+      <h2 style={{ fontWeight: "bold", marginTop: 24, padding: 8 }}>Current Unbalance</h2>
       <div style={gridStyle}>
         {currentItems.map((item) => (
           <UnbalanceCard key={"C-" + item.meter_name + item.timestamp} mode="current" data={item} />
@@ -56,6 +56,6 @@ export default function Analysis() {
 
 const gridStyle: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
   gap: 16,
 };
