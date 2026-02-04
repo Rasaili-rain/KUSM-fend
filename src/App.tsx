@@ -22,7 +22,7 @@ const router = createBrowserRouter([
   //   element: <Login />,
   // },
   {
-    element: <MasterLayout title= {title} />,
+    element: <MasterLayout/>,
     children: [
       {
         path: "/",
