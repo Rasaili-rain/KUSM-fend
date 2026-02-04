@@ -1,4 +1,5 @@
 import HeatMap from "@uiw/react-heat-map";
+import { Fullscreen } from "lucide-react";
 
 export type EnergyMapValue = {
   date: string;
@@ -23,7 +24,7 @@ export function EnergyMap({
   // Loading
   if (!data) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-gray-100">
+      <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-white rounded-2xl ">
         <div className="w-6 h-6 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
         <span className="text-sm text-gray-400">Fetching Energy..</span>
       </div>
@@ -39,17 +40,19 @@ export function EnergyMap({
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm px-5">
-      <div className="px-6 py-4 text-sm font-medium text-gray-900">
+    <div className="w-full h-full flex flex-col items bg-white rounded-2xl px-5">
+      <div className="py-4 text-md font-semibold text-gray-900">
         {title}
       </div>
 
       <HeatMap
+        className="border-2 border-gray-100 rounded-lg p-2"
         value={data}
+        width={1000}
         startDate={new Date(start_date)}
         endDate={new Date(end_date)}
         rectSize={13}
-        space={5}
+        space={6}
         legendCellSize={0}
         panelColors={colors}
         rectRender={(props, data) => (

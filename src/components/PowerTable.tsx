@@ -10,7 +10,7 @@ export type MeterPowerRow = {
 export function PowerTable({ data }: { data?: MeterPowerRow[] | null }) {
   if (!data) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-gray-100">
+      <div className="w-full h-full flex flex-col items-center justify-center gap-3">
         <div className="w-6 h-6 border-2 border-gray-200 border-t-purple-500 rounded-full animate-spin" />
         <span className="text-sm text-gray-400">Fetching power…</span>
       </div>
@@ -26,7 +26,7 @@ export function PowerTable({ data }: { data?: MeterPowerRow[] | null }) {
   }
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="p-4 ">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-800">

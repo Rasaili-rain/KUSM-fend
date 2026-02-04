@@ -86,13 +86,15 @@ export function PieGraph({
   const adjustedData = adjustDataForMinimumSlice(safeData, minSliceAngle);
   
   return (
-    <div className="w-full h-full flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm">
+    <div className="flex flex-col bg-white rounded-2xl border border-gray-100">
       {/* Header */}
       <div className="px-6 pt-5 pb-2 text-lg font-bold text-gray-900">
         {title}
       </div>
       {/* Chart */}
       <PieChart
+        height={400}
+        width={400}
         series={[
           {
             data: adjustedData.map((item) => ({

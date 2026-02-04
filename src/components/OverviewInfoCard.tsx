@@ -67,7 +67,7 @@ export function OverviewInfoCard({
           </span>
         )}
       </div>
-
+      
       {/* Footer */}
       {footer && (
         <div className="mt-auto pt-3 text-xs text-gray-400 font-medium">

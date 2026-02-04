@@ -24,13 +24,7 @@ export default function SideBar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="w-64 h-screen bg-gray-50 text-gray-700 flex flex-col border-r border-gray-200">
-      {/* Header */}
-      <div className="px-6 py-5 border-b border-gray-200">
-        <h1 className="text-lg font-semibold text-gray-800">
-          Smart Meter
-        </h1>
-      </div>
+  <div className="w-64 h-full text-gray-700 flex flex-col bg-gray-100 m-2 rounded-2xl">
 
       {/* Main Navigation */}
       <div className="px-4 py-4">

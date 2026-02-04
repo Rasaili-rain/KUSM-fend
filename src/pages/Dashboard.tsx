@@ -82,8 +82,18 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="grid grid-rows-2 grid-rows-[220px_60%] gap-2 h-screen">
-      <EnergyMap
+    <div className="grid grid-rows-2 gap-2 h-screen">
+      <div className="grid grid-cols-2 gap-2">
+        <PowerTable data={powerTable} />
+    
+        <PieGraph
+          title="Average Energy Distribution Across Meters (Wh)"
+          data={meterEnergy}
+          innerRadius={60}
+          outerRadius={150}
+        />
+      </div>
+            <EnergyMap
         title="Energy Consumption this Year"
         data={energyMapData}
         colors={[
@@ -96,16 +106,6 @@ export default function Dashboard() {
         start_date={start}
         end_date={end}
       />
-      <div className="grid grid-cols-[50%_50%] gap-2">
-        <PowerTable data={powerTable} />
-
-        <PieGraph
-          title="Average Energy Distribution Across Meters (Wh)"
-          data={meterEnergy}
-          innerRadius={60}
-          outerRadius={150}
-        />
-      </div>
     </div>
   );
 }
