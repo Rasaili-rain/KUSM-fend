@@ -37,7 +37,7 @@ export const api = {
     },
 
     async updateMeterLocations(locations: Array<{ meter_id: number; x: number; y: number }>) {
-      const response = await axiosInstance.put(`/meter/locations`, { locations });
+      const response = await axiosInstance.put(`/meter/edit/locations`, { locations });
       return response.data;
     },
 
