@@ -1,3 +1,4 @@
+// src/App.tsx
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { useEffect } from "react";
 
@@ -7,22 +8,21 @@ import Analysis from "@pages/Analysis";
 import MeterDetail from "@pages/MeterDetail";
 import Map from "@pages/Map";
 import Billing from "@pages/Billing";
-import Prediction from "@pages/Prediction"; // ADD THIS
+import Prediction from "@pages/Prediction";
+import AdminDashboard from "@pages/AdminDashboard";
+import SuperAdminDashboard from "@pages/SuperAdminDashboard";
 import { useMeterStore } from "@stores/meterStore";
 import MapAdmin from "@pages/MapAdmin";
 import { useLatestDataStore } from "@stores/latestDataStore";
+import ProtectedRoute from "@components/auth/ProtectedRoute";
 
 /*
  * Application Routes
  */
 
 const router = createBrowserRouter([
-  // {
-  //   path: "/login",
-  //   element: <Login />,
-  // },
   {
-    element: <MasterLayout/>,
+    element: <MasterLayout />,
     children: [
       {
         path: "/",
@@ -35,7 +35,7 @@ const router = createBrowserRouter([
         handle: { title: "Analysis" },
       },
       {
-        path: "/prediction", // ADD THIS
+        path: "/prediction",
         element: <Prediction />,
         handle: { title: "Prediction" },
       },
@@ -58,6 +58,25 @@ const router = createBrowserRouter([
         path: "/billing",
         element: <Billing />,
         handle: { title: "Billing" },
+      },
+      // Admin Routes
+      {
+        path: "/admin/dashboard",
+        element: (
+          <ProtectedRoute requireAdmin>
+            <AdminDashboard />
+          </ProtectedRoute>
+        ),
+        handle: { title: "Admin Dashboard" },
+      },
+      {
+        path: "/admin/super-admin-dashboard",
+        element: (
+          <ProtectedRoute requireSuperAdmin>
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        ),
+        handle: { title: "Super Admin Dashboard" },
       },
     ],
   },

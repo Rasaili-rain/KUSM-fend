@@ -1,3 +1,4 @@
+// src/components/layouts/SideBar.tsx
 import {
   LayoutDashboard,
   BarChart3,
@@ -11,7 +12,7 @@ import {
   Shield,
   ShieldCheck,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useMeterStore } from "@/stores/meterStore";
 import { useAuthStore, UserRole } from "@/stores/authStore";
@@ -19,6 +20,7 @@ import LoginModal from "@/components/auth/LoginModal";
 
 export default function SideBar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const meters = useMeterStore((state) => state.meters);
   const { user, isAuthenticated, logout } = useAuthStore();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -53,6 +55,19 @@ export default function SideBar() {
     logout();
   };
 
+  const handleProfileClick = () => {
+    if (!user) return;
+    
+    // Navigate to appropriate dashboard based on role
+    if (user.role === UserRole.SUPER_ADMIN) {
+      navigate('/admin/super-admin-dashboard');
+    } else if (user.role === UserRole.ADMIN) {
+      navigate('/admin/dashboard');
+    }
+  };
+
+  const isAdminRoute = location.pathname.startsWith('/admin/');
+
   return (
     <>
       <div className="w-64 h-[91vh] text-gray-700 flex flex-col bg-gray-100/70 m-2 rounded-2xl">
@@ -67,10 +82,11 @@ export default function SideBar() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md transition ${active
-                    ? "bg-blue-50 text-blue-600 font-medium"
-                    : "hover:bg-gray-100"
-                    }`}
+                  className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md transition ${
+                    active
+                      ? "bg-blue-50 text-blue-600 font-medium"
+                      : "hover:bg-gray-100"
+                  }`}
                 >
                   <Icon className="w-4 h-4" />
                   {item.name}
@@ -95,10 +111,11 @@ export default function SideBar() {
                 <Link
                   key={meter.meter_id}
                   to={path}
-                  className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md transition ${active
-                    ? "bg-blue-50 text-blue-600 font-medium"
-                    : "hover:bg-gray-100"
-                    }`}
+                  className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md transition ${
+                    active
+                      ? "bg-blue-50 text-blue-600 font-medium"
+                      : "hover:bg-gray-100"
+                  }`}
                   state={{ title: meter.name }}
                 >
                   <Gauge className="w-4 h-4" />
@@ -113,8 +130,13 @@ export default function SideBar() {
         <div className="px-4 py-4 border-t border-gray-200">
           {isAuthenticated && user ? (
             <div className="space-y-3">
-              {/* User Info */}
-              <div className="bg-white rounded-lg p-3 border border-gray-200">
+              {/* User Info - Clickable */}
+              <button
+                onClick={handleProfileClick}
+                className={`w-full bg-white rounded-lg p-3 border border-gray-200 hover:border-blue-300 hover:shadow-sm transition text-left ${
+                  isAdminRoute ? 'border-blue-300 shadow-sm' : ''
+                }`}
+              >
                 <div className="flex items-start gap-2 mb-2">
                   <div className="bg-blue-100 p-1.5 rounded-lg">
                     <User className="w-4 h-4 text-blue-600" />
@@ -138,7 +160,7 @@ export default function SideBar() {
                       : "Admin"}
                   </span>
                 </div>
-              </div>
+              </button>
 
               {/* Logout Button */}
               <button
@@ -158,7 +180,6 @@ export default function SideBar() {
               <LogIn className="w-4 h-4 text-gray-500" />
               <span className="font-medium">Admin Login</span>
             </button>
-
           )}
         </div>
       </div>
