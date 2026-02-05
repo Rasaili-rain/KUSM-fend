@@ -1,4 +1,3 @@
-// src/components/auth/LoginModal.tsx
 import { useState, useEffect } from 'react';
 import { X, Lock, Mail, AlertCircle, LogIn } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';

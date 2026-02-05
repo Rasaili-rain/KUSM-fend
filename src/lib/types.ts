@@ -310,3 +310,18 @@ export interface ModelStats {
 export interface WeekPrediction {
   [day: string]: PredictionPoint[];
 }
+
+
+
+export interface LoginResponse {
+  access_token: string;
+  user: {
+    id: number;
+    email: string;
+    full_name: string | null;
+    role: "super_admin" | "admin";
+    is_active: boolean;
+    created_at: string;
+    created_by: number | null;
+  };
+}

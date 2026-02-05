@@ -1,5 +1,4 @@
-// src/stores/authStore.ts
-import axiosInstance from '@/lib/api_provider';
+import { api } from '@/lib/api';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -46,13 +45,7 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await axiosInstance.post('/auth/login', {
-            email,
-            password,
-          });
-
-          const { access_token, user } = response.data;
-
+          const { access_token, user } = await api.auth.login(email, password);
           set({
             user,
             token: access_token,

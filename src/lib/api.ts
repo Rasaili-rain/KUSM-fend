@@ -1,5 +1,5 @@
 import { axiosInstance } from "./api_provider";
-import type { AvgConsumptionYearlyData, AvgDailyEnergyData, CurrentAnalysisResponse, DayPredictionResponse, GetAllMeterResponse, MeterData, ModelStats, PreviousCurrentPowerData, SinglePredictionRequest, SinglePredictionResponse, VoltageAnalysisResponse, WeekPrediction } from "./types";
+import type { AvgConsumptionYearlyData, AvgDailyEnergyData, CurrentAnalysisResponse, DayPredictionResponse, GetAllMeterResponse, LoginResponse, MeterData, ModelStats, PreviousCurrentPowerData, SinglePredictionRequest, SinglePredictionResponse, VoltageAnalysisResponse, WeekPrediction } from "./types";
 
 // API methods
 export const api = {
@@ -7,6 +7,16 @@ export const api = {
     async healthCheck(): Promise<boolean> {
       const res = await axiosInstance.get("/");
       return res.status === 200; ``
+    },
+  },
+
+  auth: {
+    async login(email: string, password: string): Promise<LoginResponse> {
+      const response = await axiosInstance.post("/auth/login", {
+        email,
+        password,
+      });
+      return response.data;
     },
   },
 
