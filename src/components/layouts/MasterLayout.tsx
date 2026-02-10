@@ -11,7 +11,7 @@ export default function MasterLayout () {
   const matches = useMatches();
   const location = useLocation();
 
-  const routeTitle = matches.filter((m) => m.handle?.title).at(-1).handle?.title ?? "NO TITLE";
+  const routeTitle = matches.filter((m) => m.handle?.title).at(-1)?.handle?.title ?? "NO TITLE";
 
   const stateTitle = location.state?.title;
   const title = stateTitle ?? routeTitle;

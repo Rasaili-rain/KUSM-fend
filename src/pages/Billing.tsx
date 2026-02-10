@@ -202,12 +202,14 @@ export default function Billing() {
             title="Total Cost"
             data={billData?.billing.total_cost}
             icon={<Receipt size={18} />}
+            prefix="Rs. "
           />
 
           <OverviewInfoCard
             title="Average Cost / Day"
             data={billData?.billing.avg_cost_per_day}
             icon={<Calculator size={18} />}
+            prefix="Rs. "
           />
 
           <OverviewInfoCard
@@ -215,6 +217,7 @@ export default function Billing() {
             data={billData?.billing.expensive_day_cost}
             footer={`${year}-${String(month).padStart(2, "0")}-${billData?.billing.expensive_day}`}
             icon={<CalendarDays size={18} />}
+            prefix="Rs. "
           />
         </div>
       </div>

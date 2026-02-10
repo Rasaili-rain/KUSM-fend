@@ -1,5 +1,4 @@
 import HeatMap from "@uiw/react-heat-map";
-import { Fullscreen } from "lucide-react";
 
 export type EnergyMapValue = {
   date: string;

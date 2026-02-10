@@ -82,7 +82,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="grid grid-rows-2 gap-2 h-screen">
+    <div className="grid grid-rows-2 gap-2">
       <div className="grid grid-cols-2 gap-2">
         <PowerTable data={powerTable} />
     
@@ -93,7 +93,7 @@ export default function Dashboard() {
           outerRadius={150}
         />
       </div>
-            <EnergyMap
+      <EnergyMap
         title="Energy Consumption this Year"
         data={energyMapData}
         colors={[

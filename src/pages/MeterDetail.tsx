@@ -36,13 +36,15 @@ export default function MeterDetail() {
   const { meterDataMap } = useLatestDataStore();
   const meter = meters.find((m) => m.meter_id === Number(meterId));
 
-  const [meterReadings, setMeterReadings] = useState<MeterData[]>([]);
+  const [meterReadings, setMeterReadings] = useState<MeterData[]|null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string>(getToday());
 
 
   // Creates line graph plotable data
   const createPhaseData = (keyPrefix: string) => {
+    if (meterReadings === null) return null;
+
     const a: TimePoint[] = [];
     const b: TimePoint[] = [];
     const c: TimePoint[] = [];
@@ -52,10 +54,9 @@ export default function MeterDetail() {
     meterReadings.forEach(d => {
       const time = new Date(d.timestamp.replace(" ", "T"));
    
-    const valA = d[`phase_A_${keyPrefix}` as PhaseKey];
-    const valB = d[`phase_B_${keyPrefix}` as PhaseKey];
-    const valC = d[`phase_C_${keyPrefix}` as PhaseKey];
-
+      const valA = d[`phase_A_${keyPrefix}` as PhaseKey];
+      const valB = d[`phase_B_${keyPrefix}` as PhaseKey];
+      const valC = d[`phase_C_${keyPrefix}` as PhaseKey];
       a.push({ x: time, y: valA });
       b.push({ x: time, y: valB });
       c.push({ x: time, y: valC });
@@ -65,7 +66,7 @@ export default function MeterDetail() {
     });
 
     // Returning null if no data is found (to trigger the loading animation ofc)
-    if (!a.length && !b.length && !c.length) return null;
+    // if (!a.length && !b.length && !c.length) return null;
 
     const phaseData = [
       { label: "Phase A", data: a, color: "#6D28D9" },
@@ -83,7 +84,7 @@ export default function MeterDetail() {
     if (!meter) return;
 
     setLoading(true);
-    setMeterReadings([]);
+    setMeterReadings(null);
 
     const fetchDataForDate = async () => {
       try {
@@ -100,6 +101,7 @@ export default function MeterDetail() {
         setMeterReadings(res.data);
       } catch (err) {
         console.error(err);
+        setMeterReadings([]);
       } finally {
         setLoading(false);
       }
@@ -111,26 +113,23 @@ export default function MeterDetail() {
 
   useEffect(() => {
     if (!meter) return;
-
     const isToday = selectedDate === getToday();
     if (!isToday) return;
-
     const latestData = meterDataMap[meter.meter_id];
     if (!latestData) return;
-
-
+    
     setMeterReadings((prev) => {
-      if (!prev.length) return [latestData];
-
+      // Handle null or empty array
+      if (!prev || prev.length === 0) return [latestData];
+      
       const last = prev[prev.length - 1];
       if (last.timestamp === latestData.timestamp) {
         return prev;
       }
-
+      
       // Add new reading and keep last 288 readings (24 hours at 5 min intervals)
       return [...prev, latestData].slice(-288);
     });
-
   }, [meter, selectedDate, meterDataMap]);
 
   const powerData = useMemo(() => createPhaseData('active_power'), [meterReadings]);
@@ -139,7 +138,7 @@ export default function MeterDetail() {
   const gridData = useMemo(() => createPhaseData('grid_consumption'), [meterReadings]);
 
   const phasePowerContribution = useMemo(() => {
-    if (!meterReadings.length) return null;
+    if (meterReadings === null) return null;
 
     let sumA = 0;
     let sumB = 0;

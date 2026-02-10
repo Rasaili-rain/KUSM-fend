@@ -37,7 +37,7 @@ export function LineGraph({ title, points }: LineGraphProps) {
     );
   }
 
-  const { series, yAxis } = useMemo(() => {
+  const { series, xAxis, yAxis } = useMemo(() => {
     const allValues = safePoints.flatMap((p) => p.data.map((d) => d.y));
     const minY = Math.min(...allValues);
     const maxY = Math.max(...allValues);
@@ -45,10 +45,29 @@ export function LineGraph({ title, points }: LineGraphProps) {
 
     const firstX = safePoints[0].data[0].x;
     const isTimeAxis = firstX instanceof Date;
-
     const xValues = safePoints[0].data.map((d) =>
       isTimeAxis ? (d.x as Date).getTime() : d.x
     );
+
+    // Calculate start and end of day for time axis
+    let dayStart: number | undefined;
+    let dayEnd: number | undefined;
+    
+    if (isTimeAxis && xValues.length > 0) {
+      const firstDate = new Date(xValues[0]);
+      dayStart = new Date(
+        firstDate.getFullYear(),
+        firstDate.getMonth(),
+        firstDate.getDate(),
+        0, 0, 0, 0
+      ).getTime();
+      dayEnd = new Date(
+        firstDate.getFullYear(),
+        firstDate.getMonth(),
+        firstDate.getDate(),
+        23, 59, 59, 999
+      ).getTime();
+    }
 
     return {
       series: safePoints.map((p) => ({
@@ -61,8 +80,10 @@ export function LineGraph({ title, points }: LineGraphProps) {
       xAxis: isTimeAxis
         ? [
             {
-              scaleType: "time",
+              scaleType: "time" as const,
               data: xValues,
+              min: dayStart,
+              max: dayEnd,
               valueFormatter: (v: number) =>
                 new Date(v).toLocaleTimeString([], {
                   hour: "2-digit",
@@ -72,13 +93,13 @@ export function LineGraph({ title, points }: LineGraphProps) {
           ]
         : [
             {
-              scaleType: "band",
+              scaleType: "band" as const,
               data: xValues,
             },
           ],
       yAxis: [
         {
-          min: minY - padding,
+          min: minY >= 0 ? 0 : minY - padding,
           max: maxY + padding,
           width: 50,
         },
@@ -94,6 +115,7 @@ export function LineGraph({ title, points }: LineGraphProps) {
 
       <LineChart
         series={series}
+        xAxis={xAxis}
         yAxis={yAxis}
         hideLegend
         sx={{

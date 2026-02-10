@@ -59,7 +59,7 @@ export function OverviewInfoCard({
           className="text-3xl font-semibold"
           style={{ color: accent }}
         >
-          {prefix}{data}
+          {prefix}{data.toFixed(2)}
         </span>
         {unit && (
           <span className="text-sm text-gray-400 font-medium">
