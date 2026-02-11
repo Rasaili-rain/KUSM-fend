@@ -7,7 +7,7 @@ import {
 import SideBar from "@components/layouts/SideBar";
 import NavBar from "@components/layouts/NavBar";
 
-export default function MasterLayout () {
+export default function MasterLayout() {
   const matches = useMatches();
   const location = useLocation();
 
@@ -20,7 +20,7 @@ export default function MasterLayout () {
       <NavBar title={title} />
       <div className="h-[92vh] flex overflow-hidden">
         <SideBar />
-        { /* Main Body */ }
+        { /* Main Body */}
         <div className="flex-1 overflow-scroll no-scrollbar p-2">
           <Outlet />
         </div>

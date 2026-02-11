@@ -18,6 +18,28 @@ export const api = {
       });
       return response.data;
     },
+
+    // Profile management
+    updateProfile: async (data: { full_name: string }) => {
+      const response = await axiosInstance.patch('/auth/me', data);
+      return response.data;
+    },
+
+    changePassword: async (data: { old_password: string; new_password: string }) => {
+      const response = await axiosInstance.post('/auth/me/change-password', data);
+      return response.data;
+    },
+
+    // Super admin methods
+    updateUserProfile: async (userId: number, data: { full_name: string }) => {
+      const response = await axiosInstance.patch(`/auth/users/${userId}`, data);
+      return response.data;
+    },
+
+    resetUserPassword: async (userId: number, data: { new_password: string }) => {
+      const response = await axiosInstance.post(`/auth/users/${userId}/reset-password`, data);
+      return response.data;
+    },
   },
 
   meter: {

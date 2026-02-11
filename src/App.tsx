@@ -50,7 +50,7 @@ const router = createBrowserRouter([
         element: (<ProtectedRoute requireAuth>
           <MapAdmin />
         </ProtectedRoute>),
-        handle: { title: "Map" },
+        handle: { title: "Map Admin" },
       },
       {
         path: "/meter/:meterId",

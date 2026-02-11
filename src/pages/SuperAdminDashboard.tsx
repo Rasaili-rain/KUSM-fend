@@ -4,19 +4,20 @@ import {
   ShieldCheck,
   Users,
   UserPlus,
-  Mail,
   CheckCircle,
   XCircle,
   RefreshCw,
   Search,
-  Calendar,
-  Trash2,
-  Edit,
   Shield,
   AlertCircle,
   X,
 } from "lucide-react";
 import { axiosInstance } from "@/lib/api_provider";
+import SuperAdminUserRow from "@/components/SuperAdminDashboardComps/SuperAdmiUsersRow";
+import CreateUserModal from "@/components/SuperAdminDashboardComps/CreateUserModal";
+import EditUserModal from "@/components/SuperAdminDashboardComps/EditUserModal";
+import EditUserProfileModal from "@/components/SuperAdminDashboardComps/EditUserProfileModal";
+import ResetPasswordModal from "@/components/SuperAdminDashboardComps/ResetPasswordModal";
 
 interface User {
   id: number;
@@ -36,6 +37,8 @@ export default function SuperAdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   // Fetch users
@@ -212,6 +215,14 @@ export default function SuperAdminDashboard() {
                     setSelectedUser(u);
                     setShowEditModal(true);
                   }}
+                  onEditProfile={(u) => {
+                    setSelectedUser(u);
+                    setShowEditProfileModal(true);
+                  }}
+                  onResetPassword={(u) => {
+                    setSelectedUser(u);
+                    setShowResetPasswordModal(true);
+                  }}
                   setError={setError}
                 />
               ))}
@@ -247,11 +258,41 @@ export default function SuperAdminDashboard() {
           setError={setError}
         />
       )}
+
+      {showEditProfileModal && selectedUser && (
+        <EditUserProfileModal
+          user={selectedUser}
+          onClose={() => {
+            setShowEditProfileModal(false);
+            setSelectedUser(null);
+          }}
+          onSuccess={() => {
+            setShowEditProfileModal(false);
+            setSelectedUser(null);
+            fetchUsers();
+          }}
+          setError={setError}
+        />
+      )}
+
+      {showResetPasswordModal && selectedUser && (
+        <ResetPasswordModal
+          user={selectedUser}
+          onClose={() => {
+            setShowResetPasswordModal(false);
+            setSelectedUser(null);
+          }}
+          onSuccess={() => {
+            setShowResetPasswordModal(false);
+            setSelectedUser(null);
+            fetchUsers();
+          }}
+          setError={setError}
+        />
+      )}
     </div>
   );
 }
-
-// Helper Components
 
 interface StatCardProps {
   title: string;
@@ -276,397 +317,6 @@ function StatCard({ title, value, icon: Icon, color }: StatCardProps) {
       </div>
       <h3 className="text-3xl font-bold text-gray-900 mb-1">{value}</h3>
       <p className="text-sm text-gray-600">{title}</p>
-    </div>
-  );
-}
-
-interface SuperAdminUserRowProps {
-  user: User;
-  currentUser: any;
-  onRefresh: () => void;
-  onEdit: (user: User) => void;
-  setError: (error: string) => void;
-}
-
-function SuperAdminUserRow({
-  user,
-  currentUser,
-  onRefresh,
-  onEdit,
-  setError,
-}: SuperAdminUserRowProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
-
-  const isCurrentUser = user.id === currentUser?.id;
-
-  const handleToggleActive = async () => {
-    if (isCurrentUser) {
-      setError("You cannot deactivate your own account");
-      return;
-    }
-
-    try {
-      setIsToggling(true);
-      await axiosInstance.patch(`/auth/users/${user.id}/toggle-active`);
-      onRefresh();
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to toggle user status");
-    } finally {
-      setIsToggling(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (isCurrentUser) {
-      setError("You cannot delete your own account");
-      return;
-    }
-
-    if (
-      !window.confirm(
-        `Are you sure you want to delete user ${user.email}? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      setIsDeleting(true);
-      await axiosInstance.delete(`/auth/users/${user.id}`);
-      onRefresh();
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to delete user");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const getRoleBadge = (role: UserRole) => {
-    if (role === UserRole.SUPER_ADMIN) {
-      return (
-        <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium flex items-center gap-1">
-          <ShieldCheck className="w-3 h-3" />
-          Super Admin
-        </span>
-      );
-    }
-    return (
-      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium flex items-center gap-1">
-        <Shield className="w-3 h-3" />
-        Admin
-      </span>
-    );
-  };
-
-  return (
-    <div
-      className={`flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition ${
-        isCurrentUser ? "ring-2 ring-purple-300" : ""
-      }`}
-    >
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
-          <Users className="w-5 h-5 text-blue-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-medium text-gray-900 truncate">
-              {user.full_name || "No name"}
-            </p>
-            {isCurrentUser && (
-              <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded flex-shrink-0">
-                You
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
-            <p className="text-sm text-gray-600 truncate">{user.email}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 ml-4">
-        <div className="text-right hidden lg:block">
-          <p className="text-xs text-gray-500">Created</p>
-          <div className="flex items-center gap-1 mt-1">
-            <Calendar className="w-3 h-3 text-gray-400" />
-            <p className="text-sm font-medium text-gray-700">
-              {formatDate(user.created_at)}
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={handleToggleActive}
-          disabled={isToggling || isCurrentUser}
-          className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition ${
-            user.is_active
-              ? "bg-green-100 text-green-700 hover:bg-green-200"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          } ${isCurrentUser ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-        >
-          {user.is_active ? (
-            <CheckCircle className="w-3 h-3" />
-          ) : (
-            <XCircle className="w-3 h-3" />
-          )}
-          {user.is_active ? "Active" : "Inactive"}
-        </button>
-
-        {getRoleBadge(user.role)}
-
-        <button
-          onClick={() => onEdit(user)}
-          disabled={isCurrentUser}
-          className={`p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition ${
-            isCurrentUser ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          title="Edit role"
-        >
-          <Edit className="w-4 h-4" />
-        </button>
-
-        <button
-          onClick={handleDelete}
-          disabled={isDeleting || isCurrentUser}
-          className={`p-2 text-red-600 hover:bg-red-50 rounded-lg transition ${
-            isDeleting || isCurrentUser ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          title="Delete user"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Create User Modal
-interface CreateUserModalProps {
-  onClose: () => void;
-  onSuccess: () => void;
-  setError: (error: string) => void;
-}
-
-function CreateUserModal({ onClose, onSuccess, setError }: CreateUserModalProps) {
-  const [formData, setFormData] = useState<{
-    email: string;
-    password: string;
-    full_name: string;
-    role: UserRole;
-  }>({
-    email: "",
-    password: "",
-    full_name: "",
-    role: UserRole.ADMIN,
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      await axiosInstance.post("/auth/users", formData);
-      onSuccess();
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to create user");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Create New User</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address *
-            </label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="user@example.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password *
-            </label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Min 8 characters"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={formData.full_name}
-              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="John Doe"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role *
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value as UserRole })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value={UserRole.ADMIN}>Admin</option>
-              <option value={UserRole.SUPER_ADMIN}>Super Admin</option>
-            </select>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              {isSubmitting ? "Creating..." : "Create User"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// Edit User Modal (Role Change)
-interface EditUserModalProps {
-  user: User;
-  onClose: () => void;
-  onSuccess: () => void;
-  setError: (error: string) => void;
-}
-
-function EditUserModal({ user, onClose, onSuccess, setError }: EditUserModalProps) {
-  const [role, setRole] = useState(user.role);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      setIsSubmitting(true);
-      await axiosInstance.put(`/auth/users/${user.id}/role`, { role });
-      onSuccess();
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to update user role");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Edit User Role</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Mail className="w-4 h-4 text-gray-600" />
-              <p className="text-sm font-medium text-gray-900">{user.email}</p>
-            </div>
-            <p className="text-sm text-gray-600">{user.full_name || "No name"}</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as UserRole)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value={UserRole.ADMIN}>Admin</option>
-              <option value={UserRole.SUPER_ADMIN}>Super Admin</option>
-            </select>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || role === user.role}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              {isSubmitting ? "Updating..." : "Update Role"}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

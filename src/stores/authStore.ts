@@ -31,6 +31,9 @@ export interface AuthState {
   checkAuth: () => boolean;
   isAdmin: () => boolean;
   isSuperAdmin: () => boolean;
+  updateProfile: (fullName: string) => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -91,6 +94,52 @@ export const useAuthStore = create<AuthState>()(
       isSuperAdmin: () => {
         const state = get();
         return state.user?.role === UserRole.SUPER_ADMIN;
+      },
+
+      updateProfile: async (fullName: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          const updatedUser = await api.auth.updateProfile({ full_name: fullName });
+          set({
+            user: updatedUser,
+            isLoading: false,
+            error: null,
+          });
+        } catch (error: any) {
+          const errorMessage =
+            error.response?.data?.detail || 'Failed to update profile';
+          set({
+            error: errorMessage,
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      changePassword: async (oldPassword: string, newPassword: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          await api.auth.changePassword({
+            old_password: oldPassword,
+            new_password: newPassword,
+          });
+          set({
+            isLoading: false,
+            error: null,
+          });
+        } catch (error: any) {
+          const errorMessage =
+            error.response?.data?.detail || 'Failed to change password';
+          set({
+            error: errorMessage,
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      updateUser: (user: User) => {
+        set({ user });
       },
     }),
     {
