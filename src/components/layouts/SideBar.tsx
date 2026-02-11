@@ -1,4 +1,3 @@
-// src/components/layouts/SideBar.tsx
 import {
   LayoutDashboard,
   BarChart3,
@@ -58,11 +57,8 @@ export default function SideBar() {
 
   const handleProfileClick = () => {
     if (!user) return;
-    // Navigate to profile page
     navigate('/profile');
   };
-
-  const isAdminRoute = location.pathname.startsWith('/admin/');
 
   return (
     <>
