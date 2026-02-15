@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-	Play, Pause, Zap, RefreshCw, Clock, Calendar, Activity, AlertCircle
+	Play, Pause, Zap, RefreshCw, Clock, Calendar, Activity, AlertCircle, Globe
 } from "lucide-react";
 import { axiosInstance } from "@/lib/api_provider";
 
 interface Schedule {
-	start_time: string;
-	end_time: string;
+	start_datetime: string;
+	end_datetime: string;
 	interval_minutes: number;
 }
 
@@ -16,6 +16,7 @@ interface Status {
 	last_run: string | null;
 	next_run: string | null;
 	is_within_schedule: boolean | null;
+	current_nepal_time: string;
 }
 
 interface DataCollectionTabProps {
@@ -27,16 +28,60 @@ export default function DataCollectionTab({ onMessage }: DataCollectionTabProps)
 	const [loading, setLoading] = useState(true);
 	const [showForm, setShowForm] = useState(false);
 	const [actionLoading, setActionLoading] = useState<string | null>(null);
+	const [currentNepalTime, setCurrentNepalTime] = useState<string>("");
+
 	const [formData, setFormData] = useState({
-		startTime: "08:00",
-		endTime: "18:00",
+		startDateTime: "",
+		endDateTime: "",
 		interval: 5,
 	});
+
+	// Format time to HH:MM for display
+	const formatTimeToHHMM = (date: Date): string => {
+		return date.toLocaleTimeString("en-US", {
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+			timeZone: "Asia/Kathmandu"
+		});
+	};
+
+	// Format datetime to ISO format for datetime-local input
+	const formatDateTimeLocal = (date: Date): string => {
+		// Get Nepal time components
+		const year = date.toLocaleString("en-US", { year: "numeric", timeZone: "Asia/Kathmandu" });
+		const month = date.toLocaleString("en-US", { month: "2-digit", timeZone: "Asia/Kathmandu" });
+		const day = date.toLocaleString("en-US", { day: "2-digit", timeZone: "Asia/Kathmandu" });
+		const hour = date.toLocaleString("en-US", { hour: "2-digit", hour12: false, timeZone: "Asia/Kathmandu" });
+		const minute = date.toLocaleString("en-US", { minute: "2-digit", timeZone: "Asia/Kathmandu" });
+
+		return `${year}-${month}-${day}T${hour}:${minute}`;
+	};
+
+	// Initialize default datetime values based on current Nepal time
+	useEffect(() => {
+		const now = new Date();
+		const startDateTime = formatDateTimeLocal(now);
+
+		// Set end time to 8 hours later
+		const endDate = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+		const endDateTime = formatDateTimeLocal(endDate);
+
+		setFormData({
+			startDateTime,
+			endDateTime,
+			interval: 5,
+		});
+	}, []);
 
 	const fetchStatus = async () => {
 		try {
 			const res = await axiosInstance.get("/data-collection/status");
 			setStatus(res.data);
+			if (res.data.current_nepal_time) {
+				const nepalDate = new Date(res.data.current_nepal_time);
+				setCurrentNepalTime(formatTimeToHHMM(nepalDate));
+			}
 			setLoading(false);
 		} catch (err) {
 			console.error(err);
@@ -50,12 +95,24 @@ export default function DataCollectionTab({ onMessage }: DataCollectionTabProps)
 		return () => clearInterval(interval);
 	}, []);
 
+	// Update current Nepal time every second
+	useEffect(() => {
+		const updateNepalTime = () => {
+			const now = new Date();
+			setCurrentNepalTime(formatTimeToHHMM(now));
+		};
+
+		updateNepalTime();
+		const interval = setInterval(updateNepalTime, 1000);
+		return () => clearInterval(interval);
+	}, []);
+
 	const handleStart = async () => {
 		try {
 			setActionLoading("start");
 			await axiosInstance.post("/data-collection/start", {
-				start_time: formData.startTime,
-				end_time: formData.endTime,
+				start_datetime: formData.startDateTime,
+				end_datetime: formData.endDateTime,
 				interval_minutes: formData.interval,
 			});
 			onMessage("success", "Data collection started successfully");
@@ -102,6 +159,7 @@ export default function DataCollectionTab({ onMessage }: DataCollectionTabProps)
 			day: "numeric",
 			hour: "2-digit",
 			minute: "2-digit",
+			timeZone: "Asia/Kathmandu"
 		});
 	};
 
@@ -163,6 +221,27 @@ export default function DataCollectionTab({ onMessage }: DataCollectionTabProps)
 
 	return (
 		<div className="space-y-6">
+			{/* Nepal Time Banner */}
+			<div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						<div className="p-2 bg-blue-100 rounded-lg">
+							<Globe className="w-5 h-5 text-blue-600" />
+						</div>
+						<div>
+							<p className="text-sm font-semibold text-blue-900">Nepal Time (NPT)</p>
+							<p className="text-xs text-blue-700">Asia/Kathmandu (UTC+5:45)</p>
+						</div>
+					</div>
+					<div className="text-right">
+						<p className="text-2xl font-bold text-blue-900 font-mono tabular-nums">
+							{currentNepalTime}
+						</p>
+						<p className="text-xs text-blue-700">Current time</p>
+					</div>
+				</div>
+			</div>
+
 			{/* Status Overview */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				{/* Collection Status */}
@@ -207,7 +286,7 @@ export default function DataCollectionTab({ onMessage }: DataCollectionTabProps)
 							<div className="text-sm font-medium text-slate-600">Schedule</div>
 							<div className="text-lg font-bold text-slate-900 mt-1">
 								{status?.schedule
-									? `${status.schedule.start_time} – ${status.schedule.end_time}`
+									? `${formatTime(status.schedule.start_datetime)} – ${formatTime(status.schedule.end_datetime)}`
 									: "No schedule"}
 							</div>
 						</div>
@@ -333,16 +412,22 @@ export default function DataCollectionTab({ onMessage }: DataCollectionTabProps)
 					<div className="border-t border-slate-200 pt-6 space-y-4 animate-in slide-in-from-top duration-300">
 						<h4 className="font-semibold text-slate-900">Configure Schedule</h4>
 
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+							<p className="text-sm text-blue-900">
+								<span className="font-semibold">Default schedule:</span> Starting from now ({currentNepalTime}) with 8-hour duration
+							</p>
+						</div>
+
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
 								<label className="block text-sm font-semibold text-slate-700 mb-2">
-									Start Time
+									Start Date & Time (NPT)
 								</label>
 								<input
-									type="time"
-									value={formData.startTime}
+									type="datetime-local"
+									value={formData.startDateTime}
 									onChange={(e) =>
-										setFormData({ ...formData, startTime: e.target.value })
+										setFormData({ ...formData, startDateTime: e.target.value })
 									}
 									className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium"
 								/>
@@ -350,33 +435,33 @@ export default function DataCollectionTab({ onMessage }: DataCollectionTabProps)
 
 							<div>
 								<label className="block text-sm font-semibold text-slate-700 mb-2">
-									End Time
+									End Date & Time (NPT)
 								</label>
 								<input
-									type="time"
-									value={formData.endTime}
+									type="datetime-local"
+									value={formData.endDateTime}
 									onChange={(e) =>
-										setFormData({ ...formData, endTime: e.target.value })
+										setFormData({ ...formData, endDateTime: e.target.value })
 									}
 									className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium"
 								/>
 							</div>
+						</div>
 
-							<div>
-								<label className="block text-sm font-semibold text-slate-700 mb-2">
-									Interval (minutes)
-								</label>
-								<input
-									type="number"
-									min="1"
-									max="1440"
-									value={formData.interval}
-									onChange={(e) =>
-										setFormData({ ...formData, interval: Number(e.target.value) })
-									}
-									className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium"
-								/>
-							</div>
+						<div>
+							<label className="block text-sm font-semibold text-slate-700 mb-2">
+								Interval (minutes)
+							</label>
+							<input
+								type="number"
+								min="1"
+								max="1440"
+								value={formData.interval}
+								onChange={(e) =>
+									setFormData({ ...formData, interval: Number(e.target.value) })
+								}
+								className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium"
+							/>
 						</div>
 
 						<div className="flex gap-3 pt-2">
@@ -414,7 +499,7 @@ export default function DataCollectionTab({ onMessage }: DataCollectionTabProps)
 					<div className="flex-1 text-sm text-blue-900">
 						<p className="font-semibold mb-1">Collection Info</p>
 						<p className="text-blue-700">
-							Data is automatically collected from all configured meters during the scheduled time window.
+							Data is automatically collected from all configured meters during the scheduled time window (Nepal Time).
 							Use "Run Now" to trigger an immediate collection outside the schedule.
 						</p>
 					</div>
