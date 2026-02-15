@@ -1,14 +1,19 @@
 import {
   Outlet,
   useMatches,
-  useLocation
+  useLocation,
+  type UIMatch
 } from "react-router-dom";
 
 import SideBar from "@components/layouts/SideBar";
 import NavBar from "@components/layouts/NavBar";
+type RouteHandle = {
+  title?: string;
+};
+
 
 export default function MasterLayout() {
-  const matches = useMatches();
+  const matches = useMatches() as UIMatch<unknown, RouteHandle>[];
   const location = useLocation();
 
   const routeTitle = matches.filter((m) => m.handle?.title).at(-1)?.handle?.title ?? "NO TITLE";

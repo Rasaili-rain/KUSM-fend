@@ -109,11 +109,11 @@ export default function MeterEditsTab({ onMessage }: MeterEditsTabProps) {
 				x: m.x ?? 50,
 				y: m.y ?? 50
 			})));
-			setLoading(false);
 		} catch (err) {
 			console.error(err);
-			setLoading(false);
 			onMessage("error", "Failed to load meters");
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -202,13 +202,29 @@ export default function MeterEditsTab({ onMessage }: MeterEditsTabProps) {
 			action: async () => {
 				try {
 					setActionLoading(`delete-${meter.sn}`);
-					await axiosInstance.delete(`/meter/edit/${meter.sn}`);
-					onMessage("success", `Meter "${meter.name}" deleted successfully`);
-					setConfirmDialog(null);
-					setConfirmInput("");
-					await fetchMeters();
+
+					// Call the delete API
+					const response = await axiosInstance.delete(`/meter/edit/${meter.sn}`);
+
+					// Check if deletion was successful
+					if (response.data.success) {
+						onMessage("success", `Meter "${meter.name}" deleted successfully`);
+
+						// Close dialog and reset input
+						setConfirmDialog(null);
+						setConfirmInput("");
+
+						// Refresh the meters list
+						await fetchMeters();
+					} else {
+						throw new Error(response.data.message || "Deletion failed");
+					}
 				} catch (err: any) {
-					onMessage("error", err.response?.data?.detail || "Failed to delete meter");
+					console.error("Delete error:", err);
+					const errorMessage = err.response?.data?.detail || err.message || "Failed to delete meter";
+					onMessage("error", errorMessage);
+
+					// Keep dialog open on error so user can retry
 				} finally {
 					setActionLoading(null);
 				}
